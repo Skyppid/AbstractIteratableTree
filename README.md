@@ -1,4 +1,4 @@
-# Abstract, Iteratable & Serializable Tree
+# Abstract, Iterable & Serializable Tree
 A simple implementation of an abstract enumerable &amp; serializable tree. Based on my CodeProject article from 2016.
 
 Updated to .NET Standard 2.0 (remains .NET Framework compatible) & C# 11. Cleaned up code.
