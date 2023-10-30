@@ -17,7 +17,7 @@ namespace TreeIterator
     public abstract class TreeBranch : IEnumerable<TreeBranch>, ISerializable
     {
         /// <summary>   List of branches. </summary>
-        protected List<TreeBranch> BranchList; 
+        protected List<TreeBranch> BranchList;
 
         ///=================================================================================================
         /// <summary>   Gets or sets the tree. </summary>
@@ -50,7 +50,7 @@ namespace TreeIterator
         ///=================================================================================================
         protected TreeBranch(TreeEnumerationMode mode = TreeEnumerationMode.DepthFirst)
         {
-            BranchList = new List<TreeBranch>();
+            BranchList = new();
             EnumerationMode = mode;
         }
 
@@ -86,15 +86,11 @@ namespace TreeIterator
         ///
         /// <param name="file"> The dump file. </param>
         ///=================================================================================================
-		public void Dump(string file)
+        public void Dump(string file)
         {
-            using (FileStream fs = new FileStream(file, FileMode.OpenOrCreate))
-            {
-                using (StreamWriter writer = new StreamWriter(fs))
-                {
-                    Dump(writer, 0);
-                }
-            }
+            using FileStream fs = new FileStream(file, FileMode.OpenOrCreate);
+            using StreamWriter writer = new StreamWriter(fs);
+            Dump(writer, 0);
         }
 
         ///=================================================================================================
@@ -133,7 +129,7 @@ namespace TreeIterator
         {
             return EnumerationMode == TreeEnumerationMode.DepthFirst
                 ? new DepthTreeEnumerator<TreeBranch>(this, null)
-                : (IEnumerator<TreeBranch>) new BreadthTreeEnumerator<TreeBranch>(this, null);
+                : new BreadthTreeEnumerator<TreeBranch>(this, null);
         }
 
         ///=================================================================================================

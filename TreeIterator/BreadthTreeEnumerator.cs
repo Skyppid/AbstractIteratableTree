@@ -10,10 +10,14 @@ namespace TreeIterator
     ///=================================================================================================
     public class BreadthTreeEnumerator : IEnumerator<TreeBranch>
     {
-        protected TreeBranch Leaf { get; set; }
-        protected BreadthTreeEnumerator SubEnumerator { get; private set; }
-        private BreadthTreeEnumerator ParentEnumerator { get; set; }
         private int _currentIndex = -1;
+
+        protected TreeBranch Leaf { get; set; }
+
+        protected BreadthTreeEnumerator SubEnumerator { get; private set; }
+
+        private BreadthTreeEnumerator ParentEnumerator { get; set; }
+
 
         ///=================================================================================================
         /// <summary>   Constructor. </summary>
@@ -59,9 +63,10 @@ namespace TreeIterator
             for (_currentIndex = start + 1; _currentIndex < Leaf.Branches.Count; _currentIndex++)
             {
                 if (Leaf.Branches[_currentIndex].Branches.Count <= 0) continue;
-                SubEnumerator = new BreadthTreeEnumerator(Leaf.Branches[_currentIndex], this) {_currentIndex = 0};
+                SubEnumerator = new BreadthTreeEnumerator(Leaf.Branches[_currentIndex], this) { _currentIndex = 0 };
                 return true;
             }
+
             SubEnumerator = null;
             return ParentEnumerator != null && ParentEnumerator.PointToNext();
         }
@@ -114,6 +119,6 @@ namespace TreeIterator
         }
 
         /// <summary>   Gets the element in the collection at the current position of the enumerator. </summary>
-        public new T Current => (T) base.Current;
+        public new T Current => (T)base.Current;
     }
 }

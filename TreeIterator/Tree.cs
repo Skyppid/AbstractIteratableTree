@@ -39,8 +39,7 @@ namespace TreeIterator
         ///=================================================================================================
         protected Tree(TreeBranch rootBranch, TreeEnumerationMode mode = TreeEnumerationMode.DepthFirst)
         {
-            if (rootBranch == null) throw new ArgumentNullException(nameof(rootBranch));
-            _rootBranch = rootBranch;
+            _rootBranch = rootBranch ?? throw new ArgumentNullException(nameof(rootBranch));
             rootBranch.Tree = this;
             EnumerationMode = mode;
         }
@@ -56,8 +55,8 @@ namespace TreeIterator
         ///=================================================================================================
         protected Tree(SerializationInfo info, StreamingContext context)
         {
-            EnumerationMode = (TreeEnumerationMode)info.GetValue("EnumerationMode", typeof (TreeEnumerationMode));
-            _rootBranch = (TreeBranch) info.GetValue("Root", typeof (TreeBranch));
+            EnumerationMode = (TreeEnumerationMode)info.GetValue("EnumerationMode", typeof(TreeEnumerationMode));
+            _rootBranch = (TreeBranch)info.GetValue("Root", typeof(TreeBranch));
             _rootBranch.Tree = this;
         }
 
@@ -90,13 +89,9 @@ namespace TreeIterator
         ///=================================================================================================
         public virtual void Dump(string file)
         {
-            using (FileStream fs = new FileStream(file, FileMode.OpenOrCreate))
-            {
-                using (StreamWriter writer = new StreamWriter(fs))
-                {
-                    Root.Dump(writer, 0);
-                }
-            }
+            using FileStream fs = new FileStream(file, FileMode.OpenOrCreate);
+            using StreamWriter writer = new StreamWriter(fs);
+            Root.Dump(writer, 0);
         }
 
         ///=================================================================================================
@@ -110,7 +105,7 @@ namespace TreeIterator
         {
             return EnumerationMode == TreeEnumerationMode.DepthFirst
                 ? new DepthTreeEnumerator(Root, null)
-                : (IEnumerator<TreeBranch>) new BreadthTreeEnumerator(Root, null);
+                : new BreadthTreeEnumerator(Root, null);
         }
 
         ///=================================================================================================
@@ -155,12 +150,12 @@ namespace TreeIterator
             XmlElement docElement = document.CreateElement("Tree");
             docElement.SetAttribute("Type", GetType().FullName);
             docElement.SetAttribute("BranchType", Root.GetType().FullName);
-            docElement.SetAttribute("Mode", ((int) EnumerationMode).ToString());
+            docElement.SetAttribute("Mode", ((int)EnumerationMode).ToString());
             document.AppendChild(docElement);
             Root.WriteXml(document, docElement);
 
-            using (FileStream fs = new FileStream(file, FileMode.Create))
-                document.Save(fs);
+            using FileStream fs = new FileStream(file, FileMode.Create);
+            document.Save(fs);
         }
 
         ///=================================================================================================
@@ -178,11 +173,11 @@ namespace TreeIterator
 
             Type treeType = Type.GetType(document.DocumentElement?.GetAttribute("Type") ?? "", true);
             Type branchType = Type.GetType(document.DocumentElement?.GetAttribute("BranchType") ?? "", true);
-            TreeEnumerationMode mode =
-                (TreeEnumerationMode)int.Parse(document.DocumentElement?.GetAttribute("Mode") ?? "");
+            var mode = (TreeEnumerationMode)int.Parse(document.DocumentElement?.GetAttribute("Mode") ?? "");
 
             TreeBranch branch = (TreeBranch)Activator.CreateInstance(branchType);
             Tree tree = (Tree)Activator.CreateInstance(treeType, branch);
+            tree.EnumerationMode = mode;
 
             XmlElement rootElement = document.DocumentElement?.ChildNodes[0] as XmlElement;
             branch.ParseXml(rootElement, null);
@@ -191,8 +186,8 @@ namespace TreeIterator
 
         public static TTree ParseXml<TTree>(string file) where TTree : Tree
         {
-            return (TTree) ParseXml(file);
-        } 
+            return (TTree)ParseXml(file);
+        }
 
         ///=================================================================================================
         /// <summary>   Writes the tree down binary. </summary>
@@ -202,15 +197,13 @@ namespace TreeIterator
         ///=================================================================================================
         public void WriteBinary(string file, Encoding textEncoding = null)
         {
-            using (FileStream fs = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                BinaryWriter writer = new BinaryWriter(fs, textEncoding ?? Encoding.Unicode);
-                writer.Write(GetType().FullName);
-                writer.Write(Root.GetType().FullName);
-                writer.Write((byte)EnumerationMode);
+            using FileStream fs = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None);
+            BinaryWriter writer = new BinaryWriter(fs, textEncoding ?? Encoding.Unicode);
+            writer.Write(GetType().FullName!);
+            writer.Write(Root.GetType().FullName!);
+            writer.Write((byte)EnumerationMode);
 
-                Root.WriteBinary(writer);
-            }
+            Root.WriteBinary(writer);
         }
 
         ///=================================================================================================
@@ -222,26 +215,24 @@ namespace TreeIterator
         public static Tree ParseBinary(string file, Encoding textEncoding = null)
         {
             Tree tree;
-            using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                BinaryReader reader = new BinaryReader(fs, textEncoding ?? Encoding.Unicode);
-                Type treeType = Type.GetType(reader.ReadString(), true);
-                Type branchType = Type.GetType(reader.ReadString(), true);
-                TreeEnumerationMode mode = (TreeEnumerationMode) reader.ReadByte();
+            using FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+            BinaryReader reader = new BinaryReader(fs, textEncoding ?? Encoding.Unicode);
+            Type treeType = Type.GetType(reader.ReadString(), true);
+            Type branchType = Type.GetType(reader.ReadString(), true);
+            TreeEnumerationMode mode = (TreeEnumerationMode)reader.ReadByte();
 
-                TreeBranch branch = (TreeBranch) Activator.CreateInstance(branchType);
-                tree = (Tree) Activator.CreateInstance(treeType, branch);
-                tree.EnumerationMode = mode;
+            TreeBranch branch = (TreeBranch)Activator.CreateInstance(branchType);
+            tree = (Tree)Activator.CreateInstance(treeType, branch);
+            tree.EnumerationMode = mode;
 
-                branch.ParseBinary(reader, null);
-            }
+            branch.ParseBinary(reader, null);
 
             return tree;
         }
 
         public static TTree ParseBinary<TTree>(string file, Encoding textEncoding = null) where TTree : Tree
         {
-            return (TTree) ParseBinary(file, textEncoding);
+            return (TTree)ParseBinary(file, textEncoding);
         }
     }
 
@@ -257,7 +248,7 @@ namespace TreeIterator
     public abstract class Tree<TBranch> : Tree, IEnumerable<TBranch> where TBranch : TreeBranch
     {
         /// <summary>   The root. </summary>
-        public new TBranch Root => (TBranch) base.Root;
+        public new TBranch Root => (TBranch)base.Root;
 
         ///=================================================================================================
         /// <summary>   Specialised constructor for use only by derived class. </summary>
@@ -310,7 +301,7 @@ namespace TreeIterator
         {
             return EnumerationMode == TreeEnumerationMode.DepthFirst
                 ? new DepthTreeEnumerator<TBranch>(Root, null)
-                : (IEnumerator<TBranch>)new BreadthTreeEnumerator<TBranch>(Root, null);
+                : new BreadthTreeEnumerator<TBranch>(Root, null);
         }
 
         ///=================================================================================================
@@ -322,7 +313,7 @@ namespace TreeIterator
         ///=================================================================================================
         public new static Tree<TBranch> ParseXml(string file)
         {
-            return (Tree<TBranch>) Tree.ParseXml(file);
+            return (Tree<TBranch>)Tree.ParseXml(file);
         }
 
         ///=================================================================================================

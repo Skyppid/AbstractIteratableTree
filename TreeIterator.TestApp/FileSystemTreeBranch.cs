@@ -1,12 +1,7 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
-using System.Text;
+﻿using System.Runtime.Serialization;
 using System.Xml;
 
-namespace TreeIterator
+namespace TreeIterator.TestApp
 {
     ///=================================================================================================
     /// <summary>   A file system tree branch. This class cannot be inherited. </summary>
@@ -23,7 +18,7 @@ namespace TreeIterator
         ///
         /// <value> The name. </value>
         ///=================================================================================================
-        public string Name { get; private set; }
+        public string Name { get; private set; } = string.Empty;
 
         ///=================================================================================================
         /// <summary>   Gets or sets a value indicating whether this instance is directory. </summary>
@@ -62,13 +57,14 @@ namespace TreeIterator
         ///=================================================================================================
         private FileSystemTreeBranch(SerializationInfo info, StreamingContext context)
         {
-            Name = info.GetString("Name");
+            Name = info.GetString("Name") ?? string.Empty;
             IsDirectory = info.GetBoolean("IsDirectory");
             int branchCount = info.GetInt32("Branches");
             if (branchCount == 0) return;
             for (int i = 0; i < branchCount; i++)
             {
-                FileSystemTreeBranch branch = (FileSystemTreeBranch)info.GetValue("Branch" + i, typeof(FileSystemTreeBranch));
+                FileSystemTreeBranch branch = (FileSystemTreeBranch?)info.GetValue("Branch" + i, typeof(FileSystemTreeBranch)) ??
+                                              throw new SerializationException($"Failed to deserialize tree branch (index {i}).");
                 AddBranch(branch);
             }
         }
@@ -103,7 +99,6 @@ namespace TreeIterator
         ///
         /// <seealso cref="M:TreeIterator.TreeBranch.GetObjectData(SerializationInfo,StreamingContext)"/>
         ///=================================================================================================
-        [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("Name", Name);

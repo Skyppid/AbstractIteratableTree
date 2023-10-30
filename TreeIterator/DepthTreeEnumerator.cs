@@ -10,10 +10,14 @@ namespace TreeIterator
     ///=================================================================================================
     public class DepthTreeEnumerator : IEnumerator<TreeBranch>
     {
-        protected TreeBranch Leaf { get; set; }
-        protected DepthTreeEnumerator SubEnumerator { get; private set; }
-        private DepthTreeEnumerator ParentEnumerator { get; set; }
         private int _currentIndex;
+
+        protected TreeBranch Leaf { get; set; }
+
+        protected DepthTreeEnumerator SubEnumerator { get; private set; }
+
+        private DepthTreeEnumerator ParentEnumerator { get; set; }
+
 
         public DepthTreeEnumerator(TreeBranch leaf, DepthTreeEnumerator parent)
         {
@@ -31,7 +35,7 @@ namespace TreeIterator
             if (SubEnumerator != null) return SubEnumerator.MoveNext();
 
             // Has no childs, kill parent subenumerator to indicate end of level
-            if (Current.Branches.Count == 0) return ParentEnumerator.IndicateEndOfLevel();
+            if (Current == null || Current.Branches.Count == 0) return ParentEnumerator.IndicateEndOfLevel();
 
             // Has childs so go one level deeper
             SubEnumerator = new DepthTreeEnumerator(Current.Branches[0], this);
@@ -89,6 +93,6 @@ namespace TreeIterator
         {
         }
 
-        public new TBranch Current => (TBranch) base.Current;
+        public new TBranch Current => (TBranch)base.Current;
     }
 }

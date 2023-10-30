@@ -1,7 +1,6 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-namespace TreeIterator
+namespace TreeIterator.TestApp
 {
     ///=================================================================================================
     /// <summary>   A file system tree. This class cannot be inherited. </summary>
@@ -13,7 +12,7 @@ namespace TreeIterator
     [Serializable]
     public sealed class FileSystemTree : Tree<FileSystemTreeBranch>
     {
-        public FileSystemTree() : base(new FileSystemTreeBranch("Root", true))
+        public FileSystemTree() : base(new("Root", true))
         {
         }
 
